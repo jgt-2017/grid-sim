@@ -28,39 +28,7 @@ export function createBessYard(scene) {
   const { center, unitsPerBlock, blockGapM } = WORLD.bessYard;
   const blockWidthM = UNITS_ACROSS * UNIT_PITCH_X_M;
   const blockCentersX = [center[0] - (blockWidthM + blockGapM) / 2, center[0] + (blockWidthM + blockGapM) / 2];
-  const count = BESS.blockCount * unitsPerBlock;
-
-  // Enclosure faces: +x/-x long sides, +y top, -y bottom, +z/-z ends (box face order)
-  const side = new THREE.MeshStandardMaterial({ map: cabinetSideTexture(BRANDS.bess.maker), roughness: 0.5 });
-  const end = new THREE.MeshStandardMaterial({ map: cabinetEndTexture(BRANDS.bess.maker, BRANDS.bess.model), roughness: 0.55 });
-  const plain = new THREE.MeshStandardMaterial({ color: '#e6e6e2', roughness: 0.6 });
-  const roofTop = new THREE.MeshStandardMaterial({ map: cabinetRoofTexture(), roughness: 0.7, metalness: 0.2 });
-  const roofSide = new THREE.MeshStandardMaterial({ color: '#cfd0cd', roughness: 0.6 });
-  const lampMat = new THREE.MeshStandardMaterial({ color: '#222', emissive: COLORS.bess, emissiveIntensity: 0.3 });
-
-  const bodies = new THREE.InstancedMesh(new RoundedBoxGeometry(...UNIT_SIZE_M, 1, 0.06), [side, side, plain, plain, end, end], count);
-  const roofs = new THREE.InstancedMesh(new RoundedBoxGeometry(UNIT_SIZE_M[0] + 0.05, ROOF_H_M, UNIT_SIZE_M[2] - 0.2, 1, 0.08),
-    [roofSide, roofSide, roofTop, roofSide, roofSide, roofSide], count);
-  const lamps = new THREE.InstancedMesh(new THREE.BoxGeometry(0.9, 0.12, 0.06), lampMat, count * 2);
-  bodies.castShadow = true;
-  bodies.receiveShadow = true;
-  roofs.castShadow = true;
-
-  // Place cabinets: per block, two rows of five; a status lamp on both ends of each
-  const m = new THREE.Matrix4();
-  let i = 0;
-  for (const bx of blockCentersX) {
-    for (let k = 0; k < unitsPerBlock; k++) {
-      const x = bx + ((k % UNITS_ACROSS) - (UNITS_ACROSS - 1) / 2) * UNIT_PITCH_X_M;
-      const z = center[1] + (Math.floor(k / UNITS_ACROSS) - 0.5) * UNIT_PITCH_Z_M;
-      bodies.setMatrixAt(i, m.makeTranslation(x, UNIT_SIZE_M[1] / 2 + 0.15, z));
-      roofs.setMatrixAt(i, m.makeTranslation(x, UNIT_SIZE_M[1] + 0.15 + ROOF_H_M / 2, z));
-      lamps.setMatrixAt(2 * i, m.makeTranslation(x, 0.55, z + UNIT_SIZE_M[2] / 2 + 0.03));
-      lamps.setMatrixAt(2 * i + 1, m.makeTranslation(x, 0.55, z - UNIT_SIZE_M[2] / 2 - 0.03));
-      i++;
-    }
-  }
-  scene.add(bodies, roofs, lamps);
+  const lampMat = addCabinets(scene, blockCentersX, center, unitsPerBlock);
 
   const gaugeZ = center[1] + UNIT_PITCH_Z_M + 3;
   const gauges = blockCentersX.map((bx, k) => createGauge(scene, bx, gaugeZ, `BLOCK ${'AB'[k] ?? k + 1}`));
@@ -81,6 +49,38 @@ export function createBessYard(scene) {
       }
     },
   };
+}
+
+// Places every cabinet (enclosure, roof, a status lamp on both ends): per block, two rows of four.
+// Returns the shared lamp material so the yard can make the lamps glow with battery power.
+function addCabinets(scene, blockCentersX, center, unitsPerBlock) {
+  const count = blockCentersX.length * unitsPerBlock;
+  // Enclosure faces: +x/-x long sides, +y top, -y bottom, +z/-z ends (box face order)
+  const side = new THREE.MeshStandardMaterial({ map: cabinetSideTexture(BRANDS.bess.maker), roughness: 0.5 });
+  const end = new THREE.MeshStandardMaterial({ map: cabinetEndTexture(BRANDS.bess.maker, BRANDS.bess.model), roughness: 0.55 });
+  const plain = new THREE.MeshStandardMaterial({ color: '#e6e6e2', roughness: 0.6 });
+  const roofTop = new THREE.MeshStandardMaterial({ map: cabinetRoofTexture(), roughness: 0.7, metalness: 0.2 });
+  const roofSide = new THREE.MeshStandardMaterial({ color: '#cfd0cd', roughness: 0.6 });
+  const lampMat = new THREE.MeshStandardMaterial({ color: '#222', emissive: COLORS.bess, emissiveIntensity: 0.3 });
+  const bodies = new THREE.InstancedMesh(new RoundedBoxGeometry(...UNIT_SIZE_M, 1, 0.06), [side, side, plain, plain, end, end], count);
+  const roofs = new THREE.InstancedMesh(new RoundedBoxGeometry(UNIT_SIZE_M[0] + 0.05, ROOF_H_M, UNIT_SIZE_M[2] - 0.2, 1, 0.08),
+    [roofSide, roofSide, roofTop, roofSide, roofSide, roofSide], count);
+  const lamps = new THREE.InstancedMesh(new THREE.BoxGeometry(0.9, 0.12, 0.06), lampMat, count * 2);
+  const m = new THREE.Matrix4();
+  let i = 0;
+  for (const bx of blockCentersX) {
+    for (let k = 0; k < unitsPerBlock; k++, i++) {
+      const x = bx + ((k % UNITS_ACROSS) - (UNITS_ACROSS - 1) / 2) * UNIT_PITCH_X_M;
+      const z = center[1] + (Math.floor(k / UNITS_ACROSS) - 0.5) * UNIT_PITCH_Z_M;
+      bodies.setMatrixAt(i, m.makeTranslation(x, UNIT_SIZE_M[1] / 2 + 0.15, z));
+      roofs.setMatrixAt(i, m.makeTranslation(x, UNIT_SIZE_M[1] + 0.15 + ROOF_H_M / 2, z));
+      lamps.setMatrixAt(2 * i, m.makeTranslation(x, 0.55, z + UNIT_SIZE_M[2] / 2 + 0.03));
+      lamps.setMatrixAt(2 * i + 1, m.makeTranslation(x, 0.55, z - UNIT_SIZE_M[2] / 2 - 0.03));
+    }
+  }
+  bodies.castShadow = bodies.receiveShadow = roofs.castShadow = true;
+  scene.add(bodies, roofs, lamps);
+  return lampMat;
 }
 
 // Builds a tall frame with an amber fill bar that rises with SOC, labelled; returns { fill, baseY }

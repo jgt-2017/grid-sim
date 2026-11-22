@@ -1,6 +1,6 @@
 /*
- * PURPOSE:    Keyboard and mouse input for walking and driving: which keys are held, one-shot key
- *             presses, and mouse movement while the pointer is locked. Ignores keys typed into the
+ * PURPOSE:    Keyboard and mouse input for walking, driving and flying: which keys are held, one-shot
+ *             key presses, mouse movement while the pointer is locked, and the drive / fly key readers. Ignores keys typed into the
  *             HUD's form fields; releases everything when the window loses focus.
  * USED BY:    src/render/player.js, src/render/controls.js
  * DEPENDS ON: nothing
@@ -50,4 +50,29 @@ export function createInput(canvas) {
       return out;
     },
   };
+}
+
+// Key bindings shared by driving and flying
+const KEYS = {
+  forward: ['KeyW', 'ArrowUp'], back: ['KeyS', 'ArrowDown'],
+  right: ['KeyD', 'ArrowRight'], left: ['KeyA', 'ArrowLeft'],
+  boost: ['ShiftLeft', 'ShiftRight'], up: ['Space', 'KeyE'], down: ['KeyC', 'KeyQ'],
+};
+
+// Takes input and a reusable { throttle, steer, handbrake, boost }; fills it from the driving keys
+export function readDriveKeys(input, out) {
+  out.throttle = input.axis(KEYS.forward, KEYS.back);
+  out.steer = input.axis(KEYS.right, KEYS.left);
+  out.handbrake = input.isDown('Space');
+  out.boost = input.anyDown(KEYS.boost);
+  return out;
+}
+
+// Takes input and a reusable { forward, strafe, climb, boost }; fills it from the flight keys
+export function readFlyKeys(input, out) {
+  out.forward = input.axis(KEYS.forward, KEYS.back);
+  out.strafe = input.axis(KEYS.right, KEYS.left);
+  out.climb = input.axis(KEYS.up, KEYS.down);
+  out.boost = input.anyDown(KEYS.boost);
+  return out;
 }

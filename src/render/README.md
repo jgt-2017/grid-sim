@@ -25,7 +25,9 @@ main.js ──► world.js ──┬─► scene.js ──► sky.js   renderer 
                        │   └─► texFoliage.js    leaf cluster, needle branch and bark textures
                        ├─► boards.js         entrance boards per zone (maker, ratings from config)
                        ├─► specBoards.js     datasheet boards: GB300 NVL72 rack and Megapack unit
+                       ├─► zoneSigns.js      floating zone signs: live text, fade up close
                        ├─► player.js         walk ⇄ drive (V) ⇄ fly (F), teleports 1-5
+                       │   ├─► playerModes.js  get in / out, launch / land, teleport, key handling
                        │   ├─► input.js      held keys, key presses, pointer-locked mouse
                        │   ├─► controls.js   first-person walking (PointerLockControls)
                        │   ├─► vehicle.js    the utility truck model (also the service van)
@@ -44,17 +46,18 @@ main.js ──► world.js ──┬─► scene.js ──► sky.js   renderer 
                        │   ├─► transformerModel.js   T1: tank, radiators + ONAF fans (>60% load),
                        │   │                         conservator, bushings, berm, nameplate
                        │   ├─► substationParts.js    insulators, disconnects, breaker, gantry
-                       │   └─► substationExtras.js   dead-end, arresters, masts, switchgear, SST
+                       │   ├─► substationExtras.js   dead-end, arresters, masts, switchgear, SST
+                       │   └─► substationYard.js     relay house, fence, lightning-mast shielding
                        ├─► gridLine.js       138 kV towers and conductors to the north
-                       ├─► dataCenter.js     glass-front halls, rooftop maker sign (follows rack
-                       │   └─► dataCenterRacks.js   profile), GPU racks with maker band and LEDs,
-                       │                     chiller fans spin with load
+                       ├─► dataCenter.js     MV room, rooftop chillers (fans spin with load)
+                       │   ├─► dataCenterHalls.js   glass-front halls, rooftop maker sign
+                       │   └─► dataCenterRacks.js   GB300 NVL72 racks with LEDs (follow utilization)
                        ├─► cables.js         cable routes + one InstancedMesh of flow particles
                        │                     (direction/speed/size from model/feeders.js)
                        ├─► labels.js         floating zone signs (sprites) and text plates
                        └─► signage.js        decals, entrance-board and facade-sign builders
-Textures: texGround.js (grass, gravel, asphalt), texPaving.js (concrete slabs and road with
-normal / roughness maps), texEquipment.js (PV, cabinets, cladding)
+Textures: texGround.js (grass, gravel, asphalt), texPaving.js (shared PBR helpers, road),
+texConcrete.js (jointed concrete), texEquipment.js (PV, cabinets, cladding), texFoliage.js (leaves, bark)
 ```
 
 ## Per-frame rules

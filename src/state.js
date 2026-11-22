@@ -34,10 +34,9 @@ function createHistory(length) {
   };
 }
 
-// Returns a complete state object populated with config defaults
-export function createState() {
+// Inputs: written by the UI (and the HUD hotkeys), read by the model
+function inputDefaults() {
   return {
-    // --- Inputs (written by UI) ---
     windSpeedMs: WIND.defaultWindSpeedMs,                              // hub-height wind (m/s)
     irradianceWm2: SOLAR.irradianceLevelsWm2[SOLAR.defaultLevel],      // peak irradiance (W/m2)
     diurnalSunEnabled: false,                                          // shape irradiance over the day
@@ -49,14 +48,22 @@ export function createState() {
     speedSimHoursPerSec: SIM.defaultSpeedSimHoursPerSec,               // sim hours per real second
     paused: false,                                                     // halt the clock
     resetRequested: false,                                             // one-shot; loop clears it
+  };
+}
 
-    // --- Time (written by simulation) ---
+// Time: written by the simulation clock
+function timeDefaults() {
+  return {
     simTimeH: 0,                                                       // elapsed sim time (h)
     hourOfDay: SIM.startHourOfDay,                                     // 0-24 (h)
     dayIndex: 0,                                                       // whole days elapsed
     stepAccumulatorH: 0,                                               // unspent real time (h)
+  };
+}
 
-    // --- Outputs (written by model) ---
+// Outputs: written by the model, read by the HUD and the 3D view
+function outputDefaults() {
+  return {
     pWindMw: 0,            // wind available (MW)
     pPvMw: 0,              // PV available after clipping (MW)
     effectiveIrradianceWm2: 0, // irradiance actually used this step (W/m2)
@@ -85,11 +92,15 @@ export function createState() {
     busBalanceOk: true,    // |residual| < tolerance this step
     maxAbsResidualMw: 0,   // worst |residual| since reset (MW)
     stepCount: 0,          // fixed steps since reset
-
     daily: createDailyTotals(),             // current sim day (MWh)
     previousDay: createDailyTotals(),       // last completed day (MWh)
     history: createHistory(SIM.historyLength),
   };
+}
+
+// Returns a complete state object populated with config defaults
+export function createState() {
+  return { ...inputDefaults(), ...timeDefaults(), ...outputDefaults() };
 }
 
 // The app-wide instance. Tests create their own with createState().

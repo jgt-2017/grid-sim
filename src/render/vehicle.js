@@ -3,7 +3,7 @@
  *             rounded cab and frame, flatbed with a cable reel, chunky wheels on steer pivots,
  *             roof beacon bar, head / brake lights and door lettering. Geometry only; motion lives
  *             in vehicleDynamics.js and player.js.
- * USED BY:    src/render/player.js, src/render/ambient.js
+ * USED BY:    src/render/player.js (createVehicle, poseVehicle), src/render/ambient.js
  * DEPENDS ON: three, three/addons RoundedBoxGeometry, src/config.js (VEHICLE), src/render/signage.js
  * UNITS:      metres. Root origin is on the ground at the centre of the wheelbase; +z is forward.
  */
@@ -96,4 +96,20 @@ export function createVehicle({ bodyColor = '#1f6f78', decal = 'MICROGRID OPS' }
     body.add(rounded(0.5, 0.18, 1.2, 0.08, dark, x * 1.0, 1.14, z));   // fender
   }
   return { root, body, wheels, brakeMat, beaconMat };
+}
+
+// Takes the truck model, its dynamics state, whether it is being driven and the time (s);
+// copies pose, wheel spin / steer, brake lights and roof beacon onto the model
+export function poseVehicle(truck, dyn, driven, timeSec) {
+  truck.root.position.set(dyn.x, dyn.y, dyn.z);
+  truck.root.rotation.set(-dyn.pitch, dyn.yaw, dyn.roll, 'YXZ');
+  truck.body.rotation.set(dyn.leanPitch, 0, dyn.leanRoll);
+  for (let i = 0; i < truck.wheels.length; i++) {
+    const w = truck.wheels[i];
+    w.spin.rotation.x = dyn.wheelAngle;
+    w.pivot.rotation.y = w.front ? dyn.steer : 0;
+  }
+  truck.brakeMat.emissiveIntensity = dyn.braking ? 6 : 0.6;
+  const beaconOn = driven && Math.abs(dyn.speed) > 0.5 && timeSec % 0.8 < 0.4;
+  truck.beaconMat.emissiveIntensity = beaconOn ? 7 : 0.5;
 }

@@ -3,13 +3,15 @@
  *             to WORLD.pavedHalfM (with a concrete edge kerb), asphalt roads with lane markings, a
  *             plain-asphalt intersection and zebra crossings. Grass remains outside the campus.
  * USED BY:    src/render/world.js
- * DEPENDS ON: three, src/config.js (WORLD, SCENERY), src/render/texPaving.js, src/render/texGround.js,
+ * DEPENDS ON: three, src/config.js (WORLD, SCENERY), src/render/texPaving.js, src/render/texConcrete.js,
+ *             src/render/texGround.js,
  *             src/render/terrain.js (heightAt), src/utils/noise.js
  * UNITS:      metres.
  */
 import * as THREE from 'three';
 import { WORLD, SCENERY } from '../config.js';
-import { concreteTextures, roadTextures } from './texPaving.js';
+import { roadTextures } from './texPaving.js';
+import { concreteTextures } from './texConcrete.js';
 import { asphaltTexture } from './texGround.js';
 import { heightAt } from './terrain.js';
 import { fbm } from '../utils/noise.js';

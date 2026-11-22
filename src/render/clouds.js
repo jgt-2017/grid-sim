@@ -11,28 +11,17 @@ import { SCENERY, WORLD } from '../config.js';
 
 const SIZE_M = 9000;
 
-// Takes the scene; returns { update(timeSec) }
-export function createClouds(scene) {
-  const uniforms = {
-    uTime: { value: 0 },
-    uCoverage: { value: SCENERY.cloudCoverage },
-    uDrift: { value: SCENERY.cloudDriftMs },
-    uSunDir: { value: new THREE.Vector3(...WORLD.sunDirection).normalize() },
-  };
-  const material = new THREE.ShaderMaterial({
-    uniforms,
-    transparent: true,
-    depthWrite: false,
-    fog: false,
-    side: THREE.DoubleSide,
-    vertexShader: `
+// Passes world position to the fragment shader
+const VERTEX_SHADER = `
       varying vec3 vWorld;
       void main() {
         vec4 w = modelMatrix * vec4(position, 1.0);
         vWorld = w.xyz;
         gl_Position = projectionMatrix * viewMatrix * w;
-      }`,
-    fragmentShader: `
+      }`;
+
+// Cumulus from fractal noise: coverage threshold, darker thick cores, sun-side glow, horizon fade
+const FRAGMENT_SHADER = `
       uniform float uTime, uCoverage, uDrift;
       uniform vec3 uSunDir;
       varying vec3 vWorld;
@@ -62,7 +51,25 @@ export function createClouds(scene) {
         float dist = length(vWorld.xz - cameraPosition.xz);
         float fade = 1.0 - smoothstep(2200.0, 4300.0, dist);
         gl_FragColor = vec4(colour, density * 0.9 * fade);
-      }`,
+      }`;
+
+// Takes the scene; returns { update(timeSec) }
+export function createClouds(scene) {
+  const uniforms = {
+    uTime: { value: 0 },
+    uCoverage: { value: SCENERY.cloudCoverage },
+    uDrift: { value: SCENERY.cloudDriftMs },
+    uSunDir: { value: new THREE.Vector3(...WORLD.sunDirection).normalize() },
+  };
+  const material = new THREE.ShaderMaterial({
+    uniforms,
+    transparent: true,
+    depthWrite: false,
+    fog: false,
+    side: THREE.DoubleSide,
+    vertexShader: VERTEX_SHADER,
+    fragmentShader: FRAGMENT_SHADER,
+
   });
   const plane = new THREE.Mesh(new THREE.PlaneGeometry(SIZE_M, SIZE_M).rotateX(Math.PI / 2), material);
   plane.position.y = SCENERY.cloudAltitudeM;

@@ -4,7 +4,7 @@
  *             (crushed rock or polished concrete). Roads and campus paving: paving.js.
  * USED BY:    src/render/world.js; heightAt() also by controls.js, windFarm.js, gridLine.js,
  *             cables.js, trees.js; PADS by trees.js
- * DEPENDS ON: three, src/utils/noise.js, src/render/texGround.js, src/render/texPaving.js,
+ * DEPENDS ON: three, src/utils/noise.js, src/render/texGround.js, src/render/texConcrete.js,
  *             src/config.js (SCENERY, WORLD)
  * UNITS:      metres.
  */
@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { fbm } from '../utils/noise.js';
 import { SCENERY, WORLD } from '../config.js';
 import { grassTexture, gravelTexture } from './texGround.js';
-import { concreteTextures } from './texPaving.js';
+import { concreteTextures } from './texConcrete.js';
 
 const GROUND_SIZE_M = 2700;    // reaches under the mountain ring
 const GROUND_SEGMENTS = 170;
