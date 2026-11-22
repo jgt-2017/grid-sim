@@ -30,7 +30,8 @@ main.js ──► world.js ──┬─► scene.js ──► sky.js   renderer 
                        │   ├─► playerModes.js  get in / out, launch / land, teleport, key handling
                        │   ├─► input.js      held keys, key presses, pointer-locked mouse
                        │   ├─► controls.js   first-person walking (PointerLockControls)
-                       │   ├─► vehicle.js    the utility truck model (also the service van)
+                       │   ├─► jeep.js       the sports jeep you drive
+                       │   ├─► vehicle.js    service van model; poseVehicle() for both
                        │   ├─► vehicleDynamics.js  arcade handling, terrain follow, collisions
                        │   ├─► chaseCamera.js      spring chase camera with mouse orbit
                        │   └─► flyer.js      flyable drone: momentum flight + chase camera

@@ -3,7 +3,7 @@
  *             rounded cab and frame, flatbed with a cable reel, chunky wheels on steer pivots,
  *             roof beacon bar, head / brake lights and door lettering. Geometry only; motion lives
  *             in vehicleDynamics.js and player.js.
- * USED BY:    src/render/player.js (createVehicle, poseVehicle), src/render/ambient.js
+ * USED BY:    src/render/ambient.js (createVehicle: the service van), src/render/player.js (poseVehicle)
  * DEPENDS ON: three, three/addons RoundedBoxGeometry, src/config.js (VEHICLE), src/render/signage.js
  * UNITS:      metres. Root origin is on the ground at the centre of the wheelbase; +z is forward.
  */

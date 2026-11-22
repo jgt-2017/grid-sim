@@ -273,7 +273,8 @@ export const VEHICLE = {
   collisionRadiusM: 1.3,           // two circles along the body
   driveHalfSizeM: 560,             // drivable area: well past the site, up to the foothills
   camera: { distanceM: 10, heightM: 3.6, lookAheadM: 4, stiffness: 5 },
-  startSpawn: [40, 66],            // where the truck is parked at start [x, z]
+  startSpawn: [40, 66],            // where the jeep is parked at start [x, z]
+  style: { paint: '#c9400a', trim: '#141518' },   // sports jeep: body paint and black trim
 };
 
 // --- Flyable drone (render only: arcade flight for exploring) ----------------------

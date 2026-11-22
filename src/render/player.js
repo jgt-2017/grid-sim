@@ -1,27 +1,28 @@
 /*
- * PURPOSE:    The person exploring the site: walks (first person), drives the utility truck (V) or
+ * PURPOSE:    The person exploring the site: walks (first person), drives the sports jeep (V) or
  *             flies a drone (F); keys 1-5 teleport in any mode. Builds the shared player context and
  *             runs the active mode each frame; the transitions themselves live in playerModes.js.
  *             Driving: W/S throttle-brake-reverse, A/D steer, Space handbrake, Shift boost, R reset.
  *             Flying: W/S/A/D move, mouse turns, Space/E climb, C/Q descend, Shift boost.
  * USED BY:    src/render/world.js
- * DEPENDS ON: src/config.js (VEHICLE), src/render/{input,controls,vehicle,vehicleDynamics,chaseCamera,
+ * DEPENDS ON: src/config.js (VEHICLE), src/render/{input,controls,jeep,vehicle,vehicleDynamics,chaseCamera,
  *             flyer,playerModes}.js
  * UNITS:      metres, seconds.
  */
 import { VEHICLE } from '../config.js';
 import { createInput, readDriveKeys, readFlyKeys } from './input.js';
 import { createControls } from './controls.js';
-import { createVehicle, poseVehicle } from './vehicle.js';
+import { poseVehicle } from './vehicle.js';
+import { createJeep } from './jeep.js';
 import { createDynamics, placeVehicle, stepDynamics } from './vehicleDynamics.js';
 import { createChaseCamera } from './chaseCamera.js';
 import { createFlyer } from './flyer.js';
 import { handleKey } from './playerModes.js';
 
-// Takes camera, canvas, scene and the colliders list; returns { update(dtSec, timeSec), mode(), speedKmh(), flyerPose() }
+// Takes camera, canvas, scene and the colliders list; returns { update(dtSec, timeSec), mode(), speedKmh(), flyerPose(), vehiclePose() }
 export function createPlayer(camera, canvas, scene, colliders) {
   const input = createInput(canvas);
-  const truck = createVehicle();
+  const truck = createJeep();                          // the sports jeep you drive
   scene.add(truck.root);
 
   // Player context shared with playerModes.js
@@ -57,5 +58,6 @@ export function createPlayer(camera, canvas, scene, colliders) {
     mode: () => p.mode,
     speedKmh: () => (p.mode === 'fly' ? p.flyer.speedMs() : Math.abs(p.dyn.speed)) * 3.6,
     flyerPose: () => p.flyer.pose,
+    vehiclePose: () => p.dyn,                            // jeep position / heading (read-only use)
   };
 }

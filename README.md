@@ -3,8 +3,10 @@
 A browser-based, walkable, real-time simulation of a grid-tied AI data center microgrid. Wind, solar, a
 battery (BESS), the GT Computing Data Center and a 138/34.5 kV utility connection all meet on **one
 34.5 kV bus**, and the simulation solves the real-power balance on that bus every 15 simulated minutes.
-The model drives a 3D site (three.js) that you can walk, drive in an electric site truck, or fly over
+The model drives a 3D site (three.js) that you can walk, drive in a sports jeep, or fly over
 with a drone, with a heads-up display showing the single-line diagram, bus panel and live charts.
+
+**Live simulation:** https://grid-sim-cfoa.vercel.app
 
 **Technical report** (load-flow backend, generator models, results, vehicle and drone views):
 https://claude.ai/artifact/UDVPEgka2TYeS6xhzxo5Vd
@@ -118,8 +120,8 @@ src/
                            Floating signs, entrance boards and datasheet boards
     player.js, playerModes.js, input.js, controls.js
                            Walk / drive / fly modes, keys and mouse, first-person walking
-    vehicle.js, vehicleDynamics.js, chaseCamera.js, colliders.js
-                           Site truck model, arcade handling, chase camera, collisions
+    jeep.js, vehicle.js, vehicleDynamics.js, chaseCamera.js, colliders.js
+                           Sports jeep you drive, van model + pose helper, arcade handling, chase camera, collisions
     flyer.js, droneModel.js, ambient.js
                            Flyable drone; keyframe-animated service van and survey drone
     tex*.js, treeGeometry.js
