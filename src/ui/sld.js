@@ -2,25 +2,25 @@
  * PURPOSE:    Single-line diagram HUD: every asset hangs off the 34.5 kV bus; glowing lines with
  *             moving chevrons show direction (toward bus = injecting) and size of each MW flow.
  * USED BY:    src/ui/hud.js
- * DEPENDS ON: src/config.js (WIND, SOLAR, BESS, GRID, COLORS), src/ui/sldDraw.js
+ * DEPENDS ON: src/config.js (WIND, SOLAR, BESS, GRID, COLORS), src/ui/sldDraw.js, src/model/feeders.js
  * UNITS:      MW from state; canvas in CSS pixels; time in seconds (animation only).
  */
 import { WIND, SOLAR, BESS, GRID, COLORS } from '../config.js';
 import { BOX_H, BUS_Y, LOWER_Y, drawFlow, drawGridEquipment, drawAssetBox, drawBus } from './sldDraw.js';
-
+import { feederIntoBusMw } from '../model/feeders.js';
 
 // Static layout. into(state) returns MW flowing INTO the bus (negative = drawn from the bus).
 const FEEDERS = [
   { name: `Utility ${GRID.hvKv} kV`, color: COLORS.grid, xFrac: 0.5, above: true,
-    into: (s) => s.pGridImportMw - s.pGridExportMw, detail: gridDetail },
+    into: (s) => feederIntoBusMw(s, 'grid'), detail: gridDetail },
   { name: `Wind ${WIND.turbineCount * WIND.ratedMwPerTurbine} MW`, color: COLORS.wind, xFrac: 0.125,
-    into: (s) => s.pWindDeliveredMw, detail: (s) => `${s.windSpeedMs.toFixed(1)} m/s` },
+    into: (s) => feederIntoBusMw(s, 'wind'), detail: (s) => `${s.windSpeedMs.toFixed(1)} m/s` },
   { name: `Solar ${SOLAR.dcRatingMwp} MWp`, color: COLORS.solar, xFrac: 0.375,
-    into: (s) => s.pPvDeliveredMw, detail: (s) => `${s.effectiveIrradianceWm2.toFixed(0)} W/m²` },
+    into: (s) => feederIntoBusMw(s, 'solar'), detail: (s) => `${s.effectiveIrradianceWm2.toFixed(0)} W/m²` },
   { name: `BESS ${BESS.powerMw} MW / ${BESS.energyMwh} MWh`, color: COLORS.bess, xFrac: 0.625,
-    into: (s) => s.pBessDisMw - s.pBessChgMw, detail: bessDetail },
-  { name: 'Data center', color: COLORS.load, xFrac: 0.875,
-    into: (s) => -(s.pLoadMw - s.pUnservedMw), detail: (s) => `${(s.dcUtilization * 100).toFixed(0)}% GPU util` },
+    into: (s) => feederIntoBusMw(s, 'bess'), detail: bessDetail },
+  { name: 'GT Computing DC', color: COLORS.load, xFrac: 0.875,
+    into: (s) => feederIntoBusMw(s, 'load'), detail: (s) => `${(s.dcUtilization * 100).toFixed(0)}% GPU util` },
 ];
 
 function gridDetail(s) {
@@ -30,7 +30,10 @@ function gridDetail(s) {
 }
 
 function bessDetail(s) {
-  const mode = s.pBessDisMw > 0 ? 'Discharging' : s.pBessChgMw > 0 ? 'Charging' : 'Idle';
+  const holding = s.gridBreakerClosed && s.soc <= s.bessReserveSoc + 0.005;
+  const mode = s.pBessDisMw > 0 ? 'Discharging'
+    : s.pBessGridChgMw > 0.005 ? 'Grid recharge'
+      : s.pBessChgMw > 0 ? 'Charging' : holding ? 'Reserve' : 'Idle';
   return `SOC ${(s.soc * 100).toFixed(0)}% · ${mode}`;
 }
 

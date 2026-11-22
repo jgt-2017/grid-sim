@@ -30,12 +30,12 @@ test('paused runs nothing; reset restores time and SOC but keeps inputs', () => 
   assert.equal(state.windSpeedMs, 15);
 });
 
-test('daily totals roll over at midnight: training load = 16.2421875 MW x 24 h', () => {
+test('daily totals roll over at midnight: training load = 16.84375 MW x 24 h', () => {
   const state = createState();
   const sim = createSimulation();
   state.speedSimHoursPerSec = 24;
   advanceSimulation(state, sim, 1.0);
   assert.equal(state.dayIndex, 1);
-  assert.ok(Math.abs(state.previousDay.loadMwh - 16.2421875 * 24) < 1e-9);
+  assert.ok(Math.abs(state.previousDay.loadMwh - 16.84375 * 24) < 1e-9);
   assert.equal(state.daily.loadMwh, 0);
 });

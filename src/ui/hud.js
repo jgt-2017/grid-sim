@@ -30,6 +30,14 @@ function bindKeys(state, hudEl, gui) {
   });
 }
 
+// Hides the walk hint while the pointer is locked (render/controls.js owns the lock itself)
+function bindPointerLockHint() {
+  const hint = document.getElementById('hint');
+  document.addEventListener('pointerlockchange', () => {
+    hint.classList.toggle('locked', document.pointerLockElement !== null);
+  });
+}
+
 // Takes state; builds the HUD and returns { update(state, nowMs) }
 export function createHud(state) {
   applyColorTokens();
@@ -39,6 +47,7 @@ export function createHud(state) {
   const sld = createSld(document.getElementById('sld'));
   const charts = createCharts(document.getElementById('charts'), state);
   bindKeys(state, hudEl, gui);
+  bindPointerLockHint();
 
   return {
     update(s, nowMs) {

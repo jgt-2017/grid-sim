@@ -1,6 +1,6 @@
 /*
  * PURPOSE:    Small unit conversions and numeric safety helpers (clamp, NaN guard).
- * USED BY:    src/model/*.js, (later) src/ui/*
+ * USED BY:    src/model/*.js
  * DEPENDS ON: nothing
  * UNITS:      kW <-> MW, hours <-> seconds; helpers are unit-agnostic.
  */

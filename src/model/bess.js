@@ -1,7 +1,7 @@
 /*
  * PURPOSE:    Battery energy storage: SOC memory, power limits with SOC taper, and SOC integration.
  *             The only class in the model, because it has to remember SOC between steps.
- * USED BY:    src/model/simulation.js, (later) src/ui/charts.js, test/bess.test.js
+ * USED BY:    src/model/simulation.js, src/ui/curveCharts.js, test/bess.test.js
  * DEPENDS ON: src/config.js (BESS), src/utils/units.js
  * UNITS:      power in MW, energy in MWh, time step in hours, SOC as fraction 0-1.
  */
@@ -46,13 +46,23 @@ export class Bess {
     return Math.min(taperedMw, headroomMw);
   }
 
-  // Takes step length (h), returns max discharge power (MW): rated x taper, capped by energy above socMin
-  dischargeLimitMw(dtHours) {
+  // Takes step length (h) and an optional floor SOC (e.g. the backup reserve); returns max discharge
+  // power (MW): rated x taper, capped by the energy above the floor (never below socMin)
+  dischargeLimitMw(dtHours, floorSoc = this.cfg.socMin) {
     const { powerMw, energyMwh, socMin } = this.cfg;
     const taperedMw = powerMw * dischargeTaperFraction(this.soc, this.cfg);
-    // Power that would empty the battery exactly to socMin in this step
-    const availableMw = Math.max(0, this.soc - socMin) * energyMwh * this.etaDischarge / dtHours;
+    // Power that would empty the battery exactly to the floor in this step
+    const floor = Math.max(socMin, floorSoc);
+    const availableMw = Math.max(0, this.soc - floor) * energyMwh * this.etaDischarge / dtHours;
     return Math.min(taperedMw, availableMw);
+  }
+
+  // Takes step length (h), target SOC and a rate cap (MW); returns the grid recharge to request (MW):
+  // zero at or above the target, otherwise up to the cap, the charge limit and the headroom to target
+  gridRechargeMw(dtHours, targetSoc, maxMw) {
+    if (this.soc >= targetSoc) return 0;
+    const toTargetMw = (targetSoc - this.soc) * this.cfg.energyMwh / (this.etaCharge * dtHours);
+    return Math.min(maxMw, toTargetMw, this.chargeLimitMw(dtHours));
   }
 
   // Takes charge and discharge power (MW, both >= 0) and step length (h); updates and returns SOC

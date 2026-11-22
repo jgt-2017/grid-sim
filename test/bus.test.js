@@ -38,13 +38,14 @@ test('10k random dispatches: residual < 1e-6, all flows >= 0 and within limits',
       pvMw: uniform(rng, 0, 25), windMw: uniform(rng, 0, 18), loadMw: uniform(rng, 0, 40),
       bessChgLimitMw: uniform(rng, 0, 20), bessDisLimitMw: uniform(rng, 0, 20),
       importLimitMw: rng() < 0.2 ? 0 : 25, exportLimitMw: rng() < 0.2 ? 0 : 25,
+      gridChargeMw: rng() < 0.3 ? uniform(rng, 0, 10) : 0,     // backup-reserve recovery requests
     };
     const r = dispatch(inp);
     assert.ok(Math.abs(r.residualMw) < TOL, `case ${i} residual ${r.residualMw}`);
     for (const k of ['bessChgMw', 'bessDisMw', 'gridImportMw', 'gridExportMw', 'curtailedMw', 'unservedMw']) {
       assert.ok(r[k] >= 0 && Number.isFinite(r[k]), `case ${i} ${k}=${r[k]}`);
     }
-    assert.ok(r.bessChgMw <= inp.bessChgLimitMw && r.bessDisMw <= inp.bessDisLimitMw);
+    assert.ok(r.bessChgMw <= inp.bessChgLimitMw + 1e-12 && r.bessDisMw <= inp.bessDisLimitMw);
     assert.ok(r.gridImportMw <= inp.importLimitMw && r.gridExportMw <= inp.exportLimitMw);
     assert.ok(r.bessChgMw === 0 || r.bessDisMw === 0);
   }

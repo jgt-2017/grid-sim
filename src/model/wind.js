@@ -1,6 +1,6 @@
 /*
  * PURPOSE:    Wind turbine power curve (cubic between cut-in and rated) and rotor speed.
- * USED BY:    src/model/simulation.js, (later) src/ui/charts.js, src/render/windFarm.js, test/wind.test.js
+ * USED BY:    src/model/simulation.js, src/ui/curveCharts.js, test/wind.test.js
  * DEPENDS ON: src/config.js (WIND), src/utils/units.js
  * UNITS:      wind speed in m/s; power in MW; rotor speed in rpm.
  */

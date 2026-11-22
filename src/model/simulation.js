@@ -1,11 +1,11 @@
 /*
  * PURPOSE:    Runs one fixed model step (assets -> bus -> BESS -> totals -> history) and the
  *             real-time accumulator that decides how many fixed steps to run per frame.
- * USED BY:    (later) src/main.js, scripts/sim-cli.js, test/bus.test.js
+ * USED BY:    src/main.js, scripts/sim-cli.js, test/bus.test.js, test/simulation.test.js, test/feeders.test.js
  * DEPENDS ON: src/config.js, src/state.js, src/model/{wind,solar,bess,datacenter,grid,bus,recorder}.js
  * UNITS:      time in hours (real frame time in seconds), power in MW, energy in MWh, SOC 0-1.
  */
-import { SIM, DATACENTER } from '../config.js';
+import { SIM, DATACENTER, BESS } from '../config.js';
 import { createState } from '../state.js';
 import { safeNonNeg, clamp, finiteOr } from '../utils/units.js';
 import { farmPowerMw, rotorRpm } from './wind.js';
@@ -19,7 +19,7 @@ import { accumulateDaily, rollOverDay, recordHistory } from './recorder.js';
 // State keys owned by the UI; reset leaves these alone
 const INPUT_KEYS = new Set([
   'windSpeedMs', 'irradianceWm2', 'diurnalSunEnabled', 'dcMode', 'mixedTrainingFraction',
-  'rackProfile', 'gridBreakerClosed', 'speedSimHoursPerSec', 'paused', 'resetRequested',
+  'rackProfile', 'gridBreakerClosed', 'bessReserveSoc', 'speedSimHoursPerSec', 'paused', 'resetRequested',
 ]);
 
 // Returns the model's private memory: the battery and reusable scratch objects
@@ -59,14 +59,19 @@ function solveBus(state, sim, dtHours) {
   input.pvMw = state.pPvMw;
   input.windMw = state.pWindMw;
   input.loadMw = state.pLoadMw;
+  // Grid-tied: hold the backup reserve (no discharge below it; recharge from the grid if under it).
+  // Islanded: the whole SOC window is usable and there is no grid to recharge from.
+  const reserve = state.gridBreakerClosed ? clamp(finiteOr(state.bessReserveSoc, 0), 0, 0.9) : 0;
   input.bessChgLimitMw = state.bessChgLimitMw = sim.bess.chargeLimitMw(dtHours);
-  input.bessDisLimitMw = state.bessDisLimitMw = sim.bess.dischargeLimitMw(dtHours);
+  input.bessDisLimitMw = state.bessDisLimitMw = sim.bess.dischargeLimitMw(dtHours, reserve);
+  input.gridChargeMw = state.gridBreakerClosed ? sim.bess.gridRechargeMw(dtHours, reserve, BESS.gridRechargeMw) : 0;
   input.importLimitMw = limits.importLimitMw;
   input.exportLimitMw = limits.exportLimitMw;
 
   const r = dispatch(input, sim.dispatchResult);
   state.pBessChgMw = r.bessChgMw;
   state.pBessDisMw = r.bessDisMw;
+  state.pBessGridChgMw = r.bessGridChgMw;
   state.pGridImportMw = r.gridImportMw;
   state.pGridExportMw = r.gridExportMw;
   state.pCurtailedMw = r.curtailedMw;

@@ -106,8 +106,10 @@ export function createSocChart(canvas, state) {
     if (h.count > 0) {
       const last = h.count - 1;
       drawMarker(c, tAt(last), socAt(last), COLORS.bess);
-      drawText(c, xToPx(c, tAt(last)) - 6, yToPx(c, socAt(last)) - 16, `${socAt(last).toFixed(0)}%`,
-        'right', COLORS.textPrimary);
+      // Label sits above the marker, or below it when the marker is near the top edge
+      const markerY = yToPx(c, socAt(last));
+      const labelY = markerY - 16 < c.margin.top ? markerY + 6 : markerY - 16;
+      drawText(c, xToPx(c, tAt(last)) - 6, labelY, `${socAt(last).toFixed(0)}%`, 'right', COLORS.textPrimary);
     }
     if (c.hoverPx >= 0 && h.count > 0) {
       const i = nearestOffset(h, pxToX(c, c.hoverPx), idx);

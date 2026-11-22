@@ -13,7 +13,7 @@ const NOW_ROWS = [
   ['gen', 'Renewables delivered', null],
   ['wind', 'Wind', COLORS.wind],
   ['solar', 'Solar', COLORS.solar],
-  ['load', 'Data center load', COLORS.load],
+  ['load', 'GT Computing DC load', COLORS.load],
   ['bess', 'Battery', COLORS.bess],
   ['soc', 'State of charge', COLORS.bess],
   ['grid', 'Grid', COLORS.grid],
@@ -38,7 +38,9 @@ function liveValues(s) {
     wind: mw(s.pWindDeliveredMw),
     solar: mw(s.pPvDeliveredMw),
     load: `${mw(s.pLoadMw)} · IT ${s.pItMw.toFixed(1)}`,
-    bess: bessMw > 0 ? `Discharge ${mw(bessMw)}` : bessMw < 0 ? `Charge ${mw(-bessMw)}` : 'Idle',
+    bess: bessMw > 0 ? `Discharge ${mw(bessMw)}`
+      : bessMw < 0 ? `Charge ${mw(-bessMw)}${s.pBessGridChgMw > 0.005 ? ' (grid)' : ''}`
+        : (s.gridBreakerClosed && s.soc <= s.bessReserveSoc + 0.005 ? 'Holding reserve' : 'Idle'),
     soc: `${(s.soc * 100).toFixed(1)} %`,
     grid: !s.gridBreakerClosed ? '⚠ Islanded'
       : gridMw > 0 ? `Import ${mw(gridMw)}` : gridMw < 0 ? `Export ${mw(-gridMw)}` : 'Idle',

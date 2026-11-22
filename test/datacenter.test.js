@@ -12,17 +12,17 @@ import { DATACENTER } from '../src/config.js';
 const close = (a, b) => Math.abs(a - b) < 1e-9;
 const gb300 = DATACENTER.profiles.gb300;
 
-test('GB300 rack at training 0.95: 33.75 + 101.25 * 0.95 = 129.9375 kW', () => {
-  assert.ok(close(rackPowerKw(0.95, gb300), 129.9375));
-  assert.ok(close(rackPowerKw(0, gb300), 33.75));
-  assert.equal(rackPowerKw(1, gb300), 135);
+test('GB300 rack (datasheet 132-140 kW): idle 35, training 0.95 -> 35 + 105 * 0.95 = 134.75 kW', () => {
+  assert.ok(close(rackPowerKw(0.95, gb300), 134.75));
+  assert.ok(close(rackPowerKw(0, gb300), 35));
+  assert.equal(rackPowerKw(1, gb300), 140);
 });
 
-test('facility: 100 racks -> 12.99375 MW IT, x1.25 PUE = 16.2421875 MW, /0.97 PF for MVA', () => {
+test('facility: 100 racks -> 13.475 MW IT, x1.25 PUE = 16.84375 MW, /0.97 PF for MVA', () => {
   const f = facilityLoad(0.95, 'gb300');
-  assert.ok(close(f.itMw, 12.99375));
-  assert.ok(close(f.facilityMw, 16.2421875));
-  assert.ok(close(f.facilityMva, 16.2421875 / 0.97));
+  assert.ok(close(f.itMw, 13.475));
+  assert.ok(close(f.facilityMw, 16.84375));
+  assert.ok(close(f.facilityMva, 16.84375 / 0.97));
 });
 
 test('inference wave: 0.80 at 14:00, 0.40 at 02:00; mixed 50/50 at 14:00 = 0.875', () => {

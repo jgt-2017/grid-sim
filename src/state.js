@@ -1,7 +1,8 @@
 /*
  * PURPOSE:    The single shared state object. UI writes inputs, model writes outputs,
  *             render reads both. Nothing else holds simulation data.
- * USED BY:    src/model/simulation.js, (later) src/main.js, src/ui/*, src/render/*, test/*
+ * USED BY:    src/main.js, src/model/simulation.js, src/model/recorder.js, test/*, scripts/sim-cli.js
+ *             (ui/* and render/* receive the instance from main.js)
  * DEPENDS ON: src/config.js
  * UNITS:      noted per field. Powers in MW (all >= 0; direction is in the field name).
  */
@@ -44,6 +45,7 @@ export function createState() {
     mixedTrainingFraction: DATACENTER.defaultMixedTrainingFraction,    // training share in mixed (0-1)
     rackProfile: DATACENTER.defaultProfile,                            // 'gb300' | 'rubin'
     gridBreakerClosed: GRID.defaultBreakerClosed,                      // false = islanded
+    bessReserveSoc: BESS.backupReserveSoc,                             // grid-tied backup reserve (0-1)
     speedSimHoursPerSec: SIM.defaultSpeedSimHoursPerSec,               // sim hours per real second
     paused: false,                                                     // halt the clock
     resetRequested: false,                                             // one-shot; loop clears it
@@ -65,6 +67,7 @@ export function createState() {
     sLoadMva: 0,           // facility apparent power (MVA)
     pBessChgMw: 0,         // battery charging (MW)
     pBessDisMw: 0,         // battery discharging (MW)
+    pBessGridChgMw: 0,     // part of the charging drawn from the grid to restore the reserve (MW)
     bessChgLimitMw: 0,     // charge limit after taper and headroom (MW)
     bessDisLimitMw: 0,     // discharge limit after taper and energy (MW)
     soc: BESS.socInitial,  // battery state of charge (0-1)

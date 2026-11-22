@@ -1,6 +1,9 @@
 /*
  * PURPOSE:    The common 34.5 kV bus solver. One-pass merit-order dispatch, no iteration:
- *             renewables must-take -> BESS -> grid -> curtail / unserved. Then checks the balance:
+ *             renewables must-take -> BESS -> grid -> curtail / unserved. Optionally the battery is
+ *             recharged from the grid (backup-reserve recovery) within the import limit; it never
+ *             charges and discharges at once, and recovery charging is trimmed before any load is
+ *             shed. Then checks the balance:
  *               (pv + wind - curtailed) + bessDis + gridImport = (load - unserved) + bessChg + gridExport
  * USED BY:    src/model/simulation.js, test/bus.test.js
  * DEPENDS ON: src/config.js (BUS), src/utils/units.js
@@ -13,6 +16,7 @@ import { safeNonNeg } from '../utils/units.js';
 export function createDispatchResult() {
   return {
     bessChgMw: 0, bessDisMw: 0,          // battery charge / discharge
+    bessGridChgMw: 0,                    // part of the charge supplied by grid import (recovery)
     gridImportMw: 0, gridExportMw: 0,    // utility import / export
     curtailedMw: 0, unservedMw: 0,       // spilled renewables / dropped load
     netMw: 0,                            // renewables minus load, before dispatch
@@ -21,8 +25,9 @@ export function createDispatchResult() {
   };
 }
 
-// Takes { pvMw, windMw, loadMw, bessChgLimitMw, bessDisLimitMw, importLimitMw, exportLimitMw }
-// and a result object; fills and returns the result. Inputs are sanitised (NaN -> 0, negatives -> 0).
+// Takes { pvMw, windMw, loadMw, bessChgLimitMw, bessDisLimitMw, importLimitMw, exportLimitMw,
+// gridChargeMw } and a result object; fills and returns the result. gridChargeMw (optional) is the
+// battery recharge requested from the grid. Inputs are sanitised (NaN -> 0, negatives -> 0).
 export function dispatch(input, out = createDispatchResult()) {
   // Block 1: sanitise inputs so a bad value can never reach the balance
   const pv = safeNonNeg(input.pvMw);
@@ -32,30 +37,40 @@ export function dispatch(input, out = createDispatchResult()) {
   const disLimit = safeNonNeg(input.bessDisLimitMw);
   const importLimit = safeNonNeg(input.importLimitMw);
   const exportLimit = safeNonNeg(input.exportLimitMw);
+  const gridCharge = safeNonNeg(input.gridChargeMw);
 
   // Block 2: net position of must-take renewables against load
   const net = pv + wind - load;
   out.netMw = net;
-  out.bessChgMw = 0; out.bessDisMw = 0;
-  out.gridImportMw = 0; out.gridExportMw = 0;
+  out.bessDisMw = 0; out.gridImportMw = 0; out.gridExportMw = 0;
   out.curtailedMw = 0; out.unservedMw = 0;
 
-  if (net > 0) {
-    // Block 3: surplus -> charge battery, then export, then curtail the rest
-    out.bessChgMw = Math.min(net, chgLimit);
-    const afterBess = net - out.bessChgMw;
-    out.gridExportMw = Math.min(afterBess, exportLimit);
-    out.curtailedMw = afterBess - out.gridExportMw;
-  } else if (net < 0) {
-    // Block 4: deficit -> discharge battery, then import, then shed (unserved) the rest
-    const deficit = -net;
-    out.bessDisMw = Math.min(deficit, disLimit);
-    const afterBess = deficit - out.bessDisMw;
-    out.gridImportMw = Math.min(afterBess, importLimit);
-    out.unservedMw = afterBess - out.gridImportMw;
-  }
+  // Block 3: battery charge = renewable surplus (up to its limit), raised to any grid recovery request
+  const fromSurplus = Math.min(Math.max(net, 0), chgLimit);
+  out.bessChgMw = Math.max(fromSurplus, Math.min(gridCharge, chgLimit));
+  const balance = net - out.bessChgMw;              // > 0 surplus left over, < 0 shortfall
 
-  // Block 5: verify the bus balance
+  if (balance > 0) {
+    // Block 4: surplus left -> export, then curtail the rest
+    out.gridExportMw = Math.min(balance, exportLimit);
+    out.curtailedMw = balance - out.gridExportMw;
+  } else if (balance < 0) {
+    // Block 5: shortfall -> discharge (only if not charging), then import, then trim any grid
+    // recharge before shedding load; whatever is still missing is unserved
+    let shortfall = -balance;
+    if (out.bessChgMw === 0) {
+      out.bessDisMw = Math.min(shortfall, disLimit);
+      shortfall -= out.bessDisMw;
+    }
+    out.gridImportMw = Math.min(shortfall, importLimit);
+    shortfall -= out.gridImportMw;
+    const trim = Math.min(out.bessChgMw, shortfall);
+    out.bessChgMw -= trim;
+    out.unservedMw = shortfall - trim;
+  }
+  out.bessGridChgMw = Math.max(0, out.bessChgMw - fromSurplus);
+
+  // Block 6: verify the bus balance
   out.residualMw = balanceResidualMw(pv, wind, load, out);
   out.balanceOk = Math.abs(out.residualMw) < BUS.residualToleranceMw;
   return out;

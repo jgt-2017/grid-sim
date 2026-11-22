@@ -23,7 +23,7 @@ grid.js ──► limits ──►    │
 | `bess.js` | Taper curves and the `Bess` class (SOC memory, limits, SOC integration) |
 | `datacenter.js` | Utilization by mode, rack kW, facility MW and MVA |
 | `grid.js` | Import/export limits (breaker-gated); transformer losses for display |
-| `bus.js` | `dispatch()`: must-take renewables → BESS → grid → curtail/unserved; residual |
+| `bus.js` | `dispatch()`: must-take renewables → BESS → grid → curtail/unserved, plus grid recharge of the battery up to the backup reserve; residual |
 | `recorder.js` | Daily MWh totals (midnight roll-over) and chart ring buffers |
 | `simulation.js` | `stepSimulation()` one fixed step; `advanceSimulation()` real-time accumulator |
 

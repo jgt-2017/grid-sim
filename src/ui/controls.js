@@ -24,7 +24,7 @@ export function createControls(state) {
   weather.add(state, 'diurnalSunEnabled').name('Sun follows time of day');
 
   // Data center: workload mode, mixed split (only active in MIXED), rack profile
-  const dc = gui.addFolder('Data center');
+  const dc = gui.addFolder('GT Computing Data Center');
   const mode = dc.add(state, 'dcMode', { TRAINING: 'training', INFERENCE: 'inference', MIXED: 'mixed' })
     .name('Workload');
   const split = dc.add(state, 'mixedTrainingFraction', 0, 1, 0.05).name('Training share (mixed)');
@@ -38,6 +38,8 @@ export function createControls(state) {
   // Grid: breaker open = islanded
   const grid = gui.addFolder('Grid');
   grid.add(state, 'gridBreakerClosed').name('Grid breaker closed');
+  // Grid-tied battery reserve: kept for outages, refilled from the grid when below it
+  grid.add(state, 'bessReserveSoc', 0, 0.8, 0.05).name('Battery backup reserve');
 
   // Simulation clock
   const clock = gui.addFolder('Simulation');

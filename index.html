@@ -6,14 +6,24 @@
     <title>Microgrid Simulator</title>
   </head>
   <body>
-    <!-- 3D scene mounts here (Stage 3) -->
+    <!-- 3D scene mounts here -->
     <div id="scene"></div>
 
     <!-- 2D HUD overlay -->
     <div id="hud">
+      <a id="paper-link" class="panel" href="https://claude.ai/artifact/UDVPEgka2TYeS6xhzxo5Vd" target="_blank" rel="noopener">
+        <b>GT Computing Microgrid</b> · Read the technical report ↗
+      </a>
       <aside id="bus-panel" class="panel" aria-label="Bus panel"></aside>
       <div id="sld-wrap" class="panel"><canvas id="sld" aria-label="Single-line diagram"></canvas></div>
       <div id="charts"></div>
+      <div id="hint" class="panel">
+        <b>Click the scene</b> · WASD move · mouse look · Shift sprint ·
+        <b>V</b> drive (Space handbrake · Shift boost · R reset) ·
+        <b>F</b> fly drone (Space/E up · C/Q down · mouse turns) ·
+        <b>1</b> Wind <b>2</b> Solar <b>3</b> BESS <b>4</b> Substation <b>5</b> Data center ·
+        P pause · H hide HUD · Esc release
+      </div>
     </div>
 
     <script type="module" src="/src/main.js"></script>

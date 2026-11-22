@@ -8,5 +8,11 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   base: './',
-  build: { target: 'es2022', outDir: 'dist' },
+  build: {
+    target: 'es2022',
+    outDir: 'dist',
+    // three.js is ~600 kB on its own; keep it in a separate, long-cached chunk
+    chunkSizeWarningLimit: 800,
+    rollupOptions: { output: { manualChunks: { three: ['three'] } } },
+  },
 });
