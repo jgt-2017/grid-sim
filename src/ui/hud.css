@@ -1,0 +1,126 @@
+/*
+ * PURPOSE:    Layout and look of the 2D HUD overlay (bus panel, SLD, charts, lil-gui).
+ * USED BY:    src/ui/hud.js (imported through Vite)
+ * DEPENDS ON: --c-* colour tokens set at runtime from src/config.js COLORS
+ * UNITS:      CSS pixels.
+ */
+:root {
+  --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --gap: 12px;
+  --panel-bg: color-mix(in srgb, var(--c-surface) 90%, transparent);
+  --hairline: rgba(255, 255, 255, 0.10);
+  color-scheme: dark;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--c-page);
+  color: var(--c-textPrimary);
+  font: 12px/1.4 var(--font);
+  overflow: hidden;
+}
+
+#scene { position: fixed; inset: 0; }
+
+/* HUD sits over the 3D scene; only the panels themselves take pointer events */
+#hud { position: fixed; inset: 0; pointer-events: none; }
+#hud.hidden { display: none; }
+#hud > * { pointer-events: auto; }
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+}
+
+h3 {
+  margin: 10px 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-textMuted);
+}
+
+/* --- Bus panel (top left) --- */
+#bus-panel {
+  position: absolute;
+  top: var(--gap);
+  left: var(--gap);
+  width: 280px;
+  max-height: calc(100vh - 270px);
+  overflow-y: auto;
+  padding: 10px 12px;
+  box-sizing: border-box;
+}
+#bus-panel .clock { font-size: 15px; font-weight: 600; }
+#bus-panel .profile { color: var(--c-textSecondary); margin-top: 2px; }
+#bus-panel .profile.unconfirmed { color: var(--c-warning); }
+.row { display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; }
+.row span { color: var(--c-textSecondary); }
+.row b { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.row b.good { color: var(--c-good); }
+.row b.warn { color: var(--c-warning); }
+.row b.crit { color: var(--c-critical); }
+.swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 6px;
+}
+
+/* --- Single-line diagram (bottom left) --- */
+#sld-wrap {
+  position: absolute;
+  left: var(--gap);
+  bottom: var(--gap);
+  width: calc(100vw - 2 * var(--gap) - 548px);
+  max-width: 760px;
+  height: 222px;
+}
+#sld { width: 100%; height: 100%; display: block; }
+
+/* --- Charts (bottom right, 2 x 2) --- */
+#charts {
+  position: absolute;
+  right: var(--gap);
+  bottom: var(--gap);
+  display: grid;
+  grid-template-columns: repeat(2, 264px);
+  gap: 8px;
+}
+.chart-card { padding: 6px 8px 4px; }
+.chart-card header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; }
+.chart-card h3 { margin: 0; text-transform: none; letter-spacing: 0; color: var(--c-textSecondary); }
+.chart-card canvas { width: 100%; height: 118px; display: block; }
+.legend { display: flex; gap: 8px; color: var(--c-textSecondary); font-size: 11px; }
+.legend i {
+  display: inline-block;
+  width: 12px;
+  margin: 0 4px 3px 0;
+  border-top: 2px solid;
+  vertical-align: middle;
+}
+.legend i.dashed { border-top-style: dashed; }
+
+/* --- lil-gui (top right): keep it clear of the chart grid --- */
+.lil-gui.autoPlace {
+  top: var(--gap) !important;
+  right: var(--gap) !important;
+  max-height: calc(100vh - 340px);
+  overflow-y: auto;
+  border-radius: 10px;
+  --background-color: var(--panel-bg);
+  --font-family: var(--font);
+}
+
+/* Narrow screens: stack the HUD and let it scroll */
+@media (max-width: 1100px) {
+  #hud { overflow-y: auto; pointer-events: auto; padding: var(--gap); box-sizing: border-box; }
+  #bus-panel, #sld-wrap, #charts { position: static; width: auto; max-height: none; margin-bottom: var(--gap); }
+  #charts { grid-template-columns: 1fr; }
+  .lil-gui.autoPlace { position: static !important; max-height: none; margin-bottom: var(--gap); }
+}

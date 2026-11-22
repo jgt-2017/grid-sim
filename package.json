@@ -1,0 +1,21 @@
+{
+  "name": "grid-sim",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Walkable Three.js simulation of a grid-tied AI data center microgrid on a common 34.5 kV bus",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test test/",
+    "sim:cli": "node scripts/sim-cli.js"
+  },
+  "dependencies": {
+    "lil-gui": "^0.19.2",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Microgrid Simulator</title>
+  </head>
+  <body>
+    <!-- 3D scene mounts here (Stage 3) -->
+    <div id="scene"></div>
+
+    <!-- 2D HUD overlay -->
+    <div id="hud">
+      <aside id="bus-panel" class="panel" aria-label="Bus panel"></aside>
+      <div id="sld-wrap" class="panel"><canvas id="sld" aria-label="Single-line diagram"></canvas></div>
+      <div id="charts"></div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
